@@ -18,17 +18,24 @@
             event.preventDefault();
             const roomName = document.getElementById('room').value;
 
-            // Get the current content of rooms.txt
-            let currentContent = '';
+            let fileData = null;
             try {
+                // Attempt to fetch the current file content
                 const response = await fetch('https://api.github.com/repos/chedi-ryuma/a.github.io/contents/rooms.txt');
-                const fileData = await response.json();
-                if (response.ok && fileData.content) {
-                    currentContent = atob(fileData.content);
+                if (response.ok) {
+                    fileData = await response.json();
+                } else {
+                    // If the file doesn't exist or other error occurs, initialize fileData as empty
+                    console.warn('File not found or error fetching file:', response.status, response.statusText);
                 }
             } catch (error) {
                 console.error('Error fetching current content:', error);
+                alert('Failed to fetch current content.');
+                return; // Exit early if fetching current content fails
             }
+
+            // Get the current content or initialize it if the file does not exist
+            const currentContent = fileData && fileData.content ? atob(fileData.content) : '';
 
             // Append the new room name to the current content
             const updatedContent = currentContent + '\n' + roomName;
@@ -40,11 +47,12 @@
                     name: "Your Name",
                     email: "your-email@example.com"
                 },
-                sha: fileData.sha // Needed for updating an existing file
+                sha: fileData ? fileData.sha : undefined // Use the SHA if available
             };
 
             try {
-                const response = await fetch('https://api.github.com/repos/chedi-ryuma/a.github.io/contents/rooms.txt', {
+                // Attempt to update the file content
+                const updateResponse = await fetch('https://api.github.com/repos/chedi-ryuma/a.github.io/contents/rooms.txt', {
                     method: 'PUT',
                     headers: {
                         'Authorization': 'token YOUR_GITHUB_TOKEN',
@@ -53,9 +61,11 @@
                     body: JSON.stringify(data)
                 });
 
-                if (response.ok) {
+                if (updateResponse.ok) {
                     alert('Room name saved successfully!');
                 } else {
+                    const errorData = await updateResponse.json();
+                    console.error('Failed to save room name:', errorData);
                     alert('Failed to save room name.');
                 }
             } catch (error) {
