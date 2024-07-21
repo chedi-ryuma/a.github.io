@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Room Form</title>
+</head>
+<body>
+    <h1>Room Form</h1>
+    <form id="roomForm">
+        <label for="room">Room Name:</label>
+        <input type="text" id="room" name="room" required>
+        <button type="submit">Submit</button>
+    </form>
+
+    <script>
+        document.getElementById('roomForm').addEventListener('submit', async function(event) {
+            event.preventDefault();
+            const roomName = document.getElementById('room').value;
+
+            const data = {
+                message: "Add new room",
+                content: btoa(roomName),
+                committer: {
+                    name: "Your Name",
+                    email: "your-email@example.com"
+                }
+            };
+
+            try {
+                const response = await fetch('https://api.github.com/repos/your-username/RoomFormProject/contents/rooms.txt', {
+                    method: 'PUT',
+                    headers: {
+                        'Authorization': 'token YOUR_GITHUB_TOKEN',
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(data)
+                });
+
+                if (response.ok) {
+                    alert('Room name saved successfully!');
+                } else {
+                    alert('Failed to save room name.');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('An error occurred.');
+            }
+        });
+    </script>
+</body>
+</html>
